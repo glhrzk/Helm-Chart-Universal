@@ -1,0 +1,28 @@
+{{- if eq (include "universal-app.isCronJob" .) "true" }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "universal-app.fullname" . }}
+  labels:
+    {{- include "universal-app.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "universal-app.selectorLabels" . | nindent 8 }}
+    spec:
+      backoffLimit: {{ .Values.cronjob.backoffLimit }}
+      {{- if .Values.cronjob.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }}
+      {{- end }}
+      {{- if .Values.cronjob.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ .Values.cronjob.ttlSecondsAfterFinished }}
+      {{- end }}
+      template:
+        {{- include "universal-app.podTemplate" . | nindent 8 }}
+          restartPolicy: {{ .Values.cronjob.restartPolicy }}
+{{- end }}

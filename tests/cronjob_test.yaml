@@ -1,0 +1,195 @@
+suite: test cronjob
+templates:
+  - cronjob.yaml
+tests:
+  - it: should create cronjob in cron mode
+    set:
+      mode: cron
+    asserts:
+      - isKind:
+          of: CronJob
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-universal-app
+
+  - it: should not create cronjob in http mode
+    set:
+      mode: http
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create cronjob in worker mode
+    set:
+      mode: worker
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create cronjob in job mode
+    set:
+      mode: job
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set correct schedule
+    set:
+      mode: cron
+      cronjob.schedule: "0 2 * * *"
+    asserts:
+      - equal:
+          path: spec.schedule
+          value: "0 2 * * *"
+
+  - it: should set concurrency policy
+    set:
+      mode: cron
+      cronjob.concurrencyPolicy: Forbid
+    asserts:
+      - equal:
+          path: spec.concurrencyPolicy
+          value: Forbid
+
+  - it: should set job history limits
+    set:
+      mode: cron
+      cronjob.successfulJobsHistoryLimit: 5
+      cronjob.failedJobsHistoryLimit: 3
+    asserts:
+      - equal:
+          path: spec.successfulJobsHistoryLimit
+          value: 5
+      - equal:
+          path: spec.failedJobsHistoryLimit
+          value: 3
+
+  - it: should set backoff limit
+    set:
+      mode: cron
+      cronjob.backoffLimit: 5
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.backoffLimit
+          value: 5
+
+  - it: should set active deadline seconds
+    set:
+      mode: cron
+      cronjob.activeDeadlineSeconds: 3600
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.activeDeadlineSeconds
+          value: 3600
+
+  - it: should set ttl seconds after finished
+    set:
+      mode: cron
+      cronjob.ttlSecondsAfterFinished: 86400
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.ttlSecondsAfterFinished
+          value: 86400
+
+  - it: should set restart policy
+    set:
+      mode: cron
+      cronjob.restartPolicy: Never
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.restartPolicy
+          value: Never
+
+  - it: should use correct image
+    set:
+      mode: cron
+      image.repository: my-cronjob
+      image.tag: v1.0.0
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].image
+          value: my-cronjob:v1.0.0
+
+  - it: should set command and args
+    set:
+      mode: cron
+      command: ["/app/batch"]
+      args: ["--daily"]
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].command
+          value: ["/app/batch"]
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].args
+          value: ["--daily"]
+
+  - it: should set environment variables
+    set:
+      mode: cron
+      env:
+        - name: BATCH_MODE
+          value: daily
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: BATCH_MODE
+            value: daily
+
+  - it: should set resources
+    set:
+      mode: cron
+      resources:
+        requests:
+          cpu: 500m
+          memory: 512Mi
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].resources.requests.cpu
+          value: 500m
+
+  - it: should set service account
+    set:
+      mode: cron
+      serviceAccount.create: true
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.serviceAccountName
+          value: RELEASE-NAME-universal-app
+
+  - it: should add volumes
+    set:
+      mode: cron
+      volumes:
+        - name: data
+          emptyDir: {}
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.volumes
+          content:
+            name: data
+            emptyDir: {}
+
+  - it: should add volume mounts
+    set:
+      mode: cron
+      volumeMounts:
+        - name: data
+          mountPath: /data
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].volumeMounts
+          content:
+            name: data
+            mountPath: /data
+
+  - it: should include standard labels
+    set:
+      mode: cron
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: universal-app
+      - equal:
+          path: metadata.labels["app.kubernetes.io/mode"]
+          value: cron

@@ -1,0 +1,58 @@
+# Python Worker Example
+# Use: helm install python-worker ./helm-chart -f examples/values-python-worker.yaml
+
+mode: worker
+replicaCount: 2
+
+image:
+  repository: my-python-worker
+  tag: "1.5.0"
+  pullPolicy: IfNotPresent
+
+# Python worker command
+command: ["python"]
+args: ["-u", "worker.py"]
+
+env:
+  - name: PYTHONUNBUFFERED
+    value: "1"
+  - name: REDIS_HOST
+    value: redis-service
+  - name: REDIS_PORT
+    value: "6379"
+  - name: WORKER_CONCURRENCY
+    value: "4"
+  - name: LOG_LEVEL
+    value: INFO
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# Worker specific ConfigMap
+configMap:
+  enabled: true
+  data:
+    worker.conf: |
+      [worker]
+      concurrency=4
+      max_tasks_per_child=1000
+      task_time_limit=3600
+      
+      [queues]
+      default=high,medium,low
+
+envFrom:
+  - configMapRef:
+      name: '{{ include "universal-app.configMapName" . }}'
+
+# Autoscaling for worker
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 75

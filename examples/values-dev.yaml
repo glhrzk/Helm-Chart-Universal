@@ -1,0 +1,89 @@
+# Development Environment Values
+# Use: helm install my-app ./helm-chart -f examples/values-dev.yaml
+
+mode: http
+replicaCount: 1
+
+image:
+  repository: my-app
+  tag: "dev"
+  pullPolicy: Always
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# Simple development environment variables
+env:
+  - name: ENVIRONMENT
+    value: development
+  - name: LOG_LEVEL
+    value: debug
+  - name: DEBUG
+    value: "true"
+
+# Minimal resources for development
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Enable probes with relaxed settings
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  failureThreshold: 5
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+
+# Disabled in dev for faster iteration
+autoscaling:
+  enabled: false
+
+# Development ConfigMap
+configMap:
+  enabled: true
+  data:
+    app.config: |
+      {
+        "environment": "development",
+        "logLevel": "debug",
+        "features": {
+          "debugMode": true
+        }
+      }
+
+# Development Secret
+secret:
+  enabled: true
+  stringData:
+    DB_HOST: postgres-dev
+    DB_NAME: myapp_dev
+    DB_USER: dev_user
+    DB_PASSWORD: dev_password
+    API_KEY: dev-api-key-12345
+
+# Use secrets as environment variables
+envFrom:
+  - secretRef:
+      name: '{{ include "universal-app.secretName" . }}'
+
+# Optional: Enable for local debugging
+podAnnotations:
+  description: "Development deployment"

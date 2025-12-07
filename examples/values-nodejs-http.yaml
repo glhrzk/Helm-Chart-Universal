@@ -1,0 +1,58 @@
+# Node.js HTTP Application Example
+# Use: helm install nodejs-api ./helm-chart -f examples/values-nodejs-http.yaml
+
+mode: http
+replicaCount: 3
+
+image:
+  repository: my-nodejs-api
+  tag: "2.1.0"
+  pullPolicy: IfNotPresent
+
+# Node.js specific command
+command: ["node"]
+args: ["--max-old-space-size=512", "server.js"]
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+env:
+  - name: NODE_ENV
+    value: production
+  - name: PORT
+    value: "3000"
+  - name: LOG_FORMAT
+    value: json
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70

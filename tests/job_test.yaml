@@ -1,0 +1,215 @@
+suite: test job
+templates:
+  - job.yaml
+tests:
+  - it: should create job in job mode
+    set:
+      mode: job
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-universal-app
+
+  - it: should not create job in http mode
+    set:
+      mode: http
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create job in worker mode
+    set:
+      mode: worker
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create job in cron mode
+    set:
+      mode: cron
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set backoff limit
+    set:
+      mode: job
+      job.backoffLimit: 5
+    asserts:
+      - equal:
+          path: spec.backoffLimit
+          value: 5
+
+  - it: should set active deadline seconds
+    set:
+      mode: job
+      job.activeDeadlineSeconds: 600
+    asserts:
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 600
+
+  - it: should set ttl seconds after finished
+    set:
+      mode: job
+      job.ttlSecondsAfterFinished: 3600
+    asserts:
+      - equal:
+          path: spec.ttlSecondsAfterFinished
+          value: 3600
+
+  - it: should set completions
+    set:
+      mode: job
+      job.completions: 5
+    asserts:
+      - equal:
+          path: spec.completions
+          value: 5
+
+  - it: should set parallelism
+    set:
+      mode: job
+      job.parallelism: 3
+    asserts:
+      - equal:
+          path: spec.parallelism
+          value: 3
+
+  - it: should set restart policy
+    set:
+      mode: job
+      job.restartPolicy: Never
+    asserts:
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: Never
+
+  - it: should use correct image
+    set:
+      mode: job
+      image.repository: my-migration
+      image.tag: v2.0.0
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: my-migration:v2.0.0
+
+  - it: should set command and args
+    set:
+      mode: job
+      command: ["npm"]
+      args: ["run", "migrate:up"]
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value: ["npm"]
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value: ["run", "migrate:up"]
+
+  - it: should set environment variables
+    set:
+      mode: job
+      env:
+        - name: MIGRATION_DIR
+          value: /app/migrations
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIGRATION_DIR
+            value: /app/migrations
+
+  - it: should set resources
+    set:
+      mode: job
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 1000m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 1Gi
+
+  - it: should set service account
+    set:
+      mode: job
+      serviceAccount.create: true
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: RELEASE-NAME-universal-app
+
+  - it: should add init containers
+    set:
+      mode: job
+      initContainers:
+        - name: wait-for-db
+          image: postgres:14
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: wait-for-db
+            image: postgres:14
+
+  - it: should add volumes
+    set:
+      mode: job
+      volumes:
+        - name: config
+          configMap:
+            name: my-config
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            configMap:
+              name: my-config
+
+  - it: should add volume mounts
+    set:
+      mode: job
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /etc/config
+
+  - it: should include standard labels
+    set:
+      mode: job
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: universal-app
+      - equal:
+          path: metadata.labels["app.kubernetes.io/mode"]
+          value: job
+
+  - it: should set pod security contexts
+    set:
+      mode: job
+      podSecurityContext:
+        runAsUser: 1000
+      securityContext:
+        readOnlyRootFilesystem: true
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true

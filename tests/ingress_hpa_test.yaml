@@ -1,0 +1,161 @@
+suite: test ingress and hpa
+templates:
+  - ingress.yaml
+  - hpa.yaml
+tests:
+  - it: should create ingress when enabled
+    template: ingress.yaml
+    set:
+      mode: http
+      ingress.enabled: true
+      ingress.hosts:
+        - host: example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-universal-app
+
+  - it: should not create ingress when disabled
+    template: ingress.yaml
+    set:
+      mode: http
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set ingress class name
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+
+  - it: should set ingress annotations
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+      ingress.annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+    asserts:
+      - equal:
+          path: metadata.annotations["cert-manager.io/cluster-issuer"]
+          value: letsencrypt
+
+  - it: should configure tls
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+      ingress.tls:
+        - secretName: tls-secret
+          hosts:
+            - example.com
+    asserts:
+      - contains:
+          path: spec.tls
+          content:
+            secretName: tls-secret
+            hosts:
+              - example.com
+
+  - it: should create hpa when autoscaling enabled in http mode
+    template: hpa.yaml
+    set:
+      mode: http
+      autoscaling.enabled: true
+      autoscaling.minReplicas: 2
+      autoscaling.maxReplicas: 10
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: spec.minReplicas
+          value: 2
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+
+  - it: should not create hpa when autoscaling disabled
+    template: hpa.yaml
+    set:
+      mode: http
+      autoscaling.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create hpa in cron mode
+    template: hpa.yaml
+    set:
+      mode: cron
+      autoscaling.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create hpa in job mode
+    template: hpa.yaml
+    set:
+      mode: job
+      autoscaling.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set cpu utilization target
+    template: hpa.yaml
+    set:
+      mode: http
+      autoscaling.enabled: true
+      autoscaling.targetCPUUtilizationPercentage: 75
+    asserts:
+      - contains:
+          path: spec.metrics
+          content:
+            type: Resource
+            resource:
+              name: cpu
+              target:
+                type: Utilization
+                averageUtilization: 75
+
+  - it: should set memory utilization target
+    template: hpa.yaml
+    set:
+      mode: http
+      autoscaling.enabled: true
+      autoscaling.targetMemoryUtilizationPercentage: 80
+    asserts:
+      - contains:
+          path: spec.metrics
+          content:
+            type: Resource
+            resource:
+              name: memory
+              target:
+                type: Utilization
+                averageUtilization: 80
+
+  - it: should reference deployment
+    template: hpa.yaml
+    set:
+      mode: http
+      autoscaling.enabled: true
+    asserts:
+      - equal:
+          path: spec.scaleTargetRef.apiVersion
+          value: apps/v1
+      - equal:
+          path: spec.scaleTargetRef.kind
+          value: Deployment
+      - equal:
+          path: spec.scaleTargetRef.name
+          value: RELEASE-NAME-universal-app

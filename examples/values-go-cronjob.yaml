@@ -1,0 +1,75 @@
+# Go CronJob Example
+# Use: helm install go-cronjob ./helm-chart -f examples/values-go-cronjob.yaml
+
+mode: cron
+
+image:
+  repository: my-go-batch-processor
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+# CronJob schedule: Run at 2 AM daily
+cronjob:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid  # Don't allow overlapping runs
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 3
+  restartPolicy: OnFailure
+  backoffLimit: 3
+  activeDeadlineSeconds: 3600  # 1 hour timeout
+  ttlSecondsAfterFinished: 86400  # Clean up after 24 hours
+
+# Go application command
+command: ["/app/batch-processor"]
+args:
+  - "--mode=daily-report"
+  - "--verbose"
+
+env:
+  - name: BATCH_DATE
+    value: "yesterday"
+  - name: OUTPUT_FORMAT
+    value: json
+  - name: NOTIFICATION_ENABLED
+    value: "true"
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+
+# ConfigMap for batch processing
+configMap:
+  enabled: true
+  data:
+    batch.yaml: |
+      batch:
+        chunk_size: 1000
+        parallel_workers: 4
+        output_dir: /data/reports
+      
+      database:
+        timeout: 30s
+        max_connections: 10
+
+# Mount configuration
+volumes:
+  - name: config
+    configMap:
+      name: '{{ include "universal-app.configMapName" . }}'
+  - name: data
+    emptyDir: {}
+
+volumeMounts:
+  - name: config
+    mountPath: /app/config
+  - name: data
+    mountPath: /data
+
+# Use secret for database credentials
+envFrom:
+  - secretRef:
+      name: batch-db-credentials
