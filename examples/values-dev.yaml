@@ -82,7 +82,7 @@ secret:
 # Use secrets as environment variables
 envFrom:
   - secretRef:
-      name: '{{ include "universal-app.secretName" . }}'
+      name: '{{ include "secretName" . }}'
 
 # Optional: Enable for local debugging
 podAnnotations:

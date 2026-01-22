@@ -157,7 +157,7 @@ envFrom:
   - secretRef:
       name: app-prod-secrets
   - configMapRef:
-      name: '{{ include "universal-app.configMapName" . }}'
+      name: '{{ include "configMapName" . }}'
 
 # Volumes for production
 volumes:

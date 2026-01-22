@@ -10,7 +10,7 @@ tests:
           of: Job
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
 
   - it: should not create job in http mode
     set:
@@ -145,7 +145,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.serviceAccountName
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
 
   - it: should add init containers
     set:
@@ -194,7 +194,7 @@ tests:
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
-          value: universal-app
+          value: app
       - equal:
           path: metadata.labels["app.kubernetes.io/mode"]
           value: job

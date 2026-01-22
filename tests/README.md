@@ -1,6 +1,6 @@
 # Helm Chart Unit Tests
 
-This directory contains comprehensive unit tests for the universal-app Helm chart using the `helm-unittest` plugin.
+This directory contains comprehensive unit tests for the app Helm chart using the `helm-unittest` plugin.
 
 ## Prerequisites
 

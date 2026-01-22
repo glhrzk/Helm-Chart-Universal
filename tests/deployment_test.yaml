@@ -10,7 +10,7 @@ tests:
           of: Deployment
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
       - equal:
           path: spec.replicas
           value: 1
@@ -23,7 +23,7 @@ tests:
           of: Deployment
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
 
   - it: should not create deployment in cron mode
     set:
@@ -185,7 +185,7 @@ tests:
     asserts:
       - equal:
           path: spec.selector.matchLabels["app.kubernetes.io/name"]
-          value: universal-app
+          value: app
       - equal:
           path: spec.selector.matchLabels["app.kubernetes.io/instance"]
           value: RELEASE-NAME
@@ -205,7 +205,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.serviceAccountName
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
 
   - it: should add volumes
     set:

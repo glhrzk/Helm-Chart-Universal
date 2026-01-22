@@ -12,7 +12,7 @@ This guide will help you install, test, and verify the Helm chart.
 
 ```bash
 # Navigate to the chart directory
-cd /Users/galih.rizkiansyah/Developments/dompay/helm-chart
+cd /Users/galih.rizkiansyah/Developments/app/helm-chart
 
 # List chart contents
 ls -la
@@ -86,7 +86,7 @@ helm plugin list
 helm unittest .
 
 # You should see output like:
-# ### Chart [ universal-app ] .
+# ### Chart [ app ] .
 # 
 #  PASS  test deployment  tests/deployment_test.yaml
 #  PASS  test service     tests/service_test.yaml
@@ -278,7 +278,7 @@ helm install test-config . \
 
 # Verify ConfigMap
 kubectl get configmap -n helm-test
-kubectl describe configmap test-config-universal-app -n helm-test
+kubectl describe configmap test-config-app -n helm-test
 ```
 
 ### Test with Secret
@@ -293,7 +293,7 @@ helm install test-secret . \
 
 # Verify Secret
 kubectl get secret -n helm-test
-kubectl describe secret test-secret-universal-app -n helm-test
+kubectl describe secret test-secret-app -n helm-test
 ```
 
 ### Test with Autoscaling
@@ -308,7 +308,7 @@ helm install test-hpa . \
 
 # Verify HPA
 kubectl get hpa -n helm-test
-kubectl describe hpa test-hpa-universal-app -n helm-test
+kubectl describe hpa test-hpa-app -n helm-test
 ```
 
 ### Test with RBAC
@@ -337,7 +337,7 @@ helm upgrade test-app . \
 
 # Verify upgrade
 helm history test-app -n helm-test
-kubectl rollout status deployment/test-app-universal-app -n helm-test
+kubectl rollout status deployment/test-app-app -n helm-test
 ```
 
 ## Step 11: Test Rollback
@@ -375,11 +375,11 @@ kubectl delete namespace helm-test
 helm package .
 
 # Expected output:
-# Successfully packaged chart and saved it to: /path/to/universal-app-1.0.0.tgz
+# Successfully packaged chart and saved it to: /path/to/app-1.0.0.tgz
 
 # Verify package
-helm show chart universal-app-1.0.0.tgz
-helm show values universal-app-1.0.0.tgz
+helm show chart app-1.0.0.tgz
+helm show values app-1.0.0.tgz
 ```
 
 ## Verification Checklist
