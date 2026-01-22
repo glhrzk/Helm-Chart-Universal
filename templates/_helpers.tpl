@@ -1,41 +1,35 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "universal-app.name" -}}
+{{- define "name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
 */}}
-{{- define "universal-app.fullname" -}}
+{{- define "fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
 {{- end }}
 {{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "universal-app.chart" -}}
+{{- define "chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "universal-app.labels" -}}
-helm.sh/chart: {{ include "universal-app.chart" . }}
-{{ include "universal-app.selectorLabels" . }}
+{{- define "labels" -}}
+helm.sh/chart: {{ include "chart" . }}
+{{ include "selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -46,17 +40,17 @@ app.kubernetes.io/mode: {{ .Values.mode }}
 {{/*
 Selector labels
 */}}
-{{- define "universal-app.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "universal-app.name" . }}
+{{- define "selectorLabels" -}}
+app.kubernetes.io/name: {{ include "name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "universal-app.serviceAccountName" -}}
+{{- define "serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "universal-app.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -65,29 +59,29 @@ Create the name of the service account to use
 {{/*
 Create the name of the ConfigMap to use
 */}}
-{{- define "universal-app.configMapName" -}}
+{{- define "configMapName" -}}
 {{- if .Values.configMap.name }}
 {{- .Values.configMap.name }}
 {{- else }}
-{{- include "universal-app.fullname" . }}
+{{- include "fullname" . }}
 {{- end }}
 {{- end }}
 
 {{/*
 Create the name of the Secret to use
 */}}
-{{- define "universal-app.secretName" -}}
+{{- define "secretName" -}}
 {{- if .Values.secret.name }}
 {{- .Values.secret.name }}
 {{- else }}
-{{- include "universal-app.fullname" . }}
+{{- include "fullname" . }}
 {{- end }}
 {{- end }}
 
 {{/*
 Return the proper image name
 */}}
-{{- define "universal-app.image" -}}
+{{- define "image" -}}
 {{- $tag := .Values.image.tag | default .Chart.AppVersion -}}
 {{- printf "%s:%s" .Values.image.repository $tag -}}
 {{- end }}
@@ -95,7 +89,7 @@ Return the proper image name
 {{/*
 Return the proper container ports
 */}}
-{{- define "universal-app.containerPort" -}}
+{{- define "containerPort" -}}
 {{- if .Values.service.targetPort }}
 {{- .Values.service.targetPort }}
 {{- else }}
@@ -106,48 +100,60 @@ Return the proper container ports
 {{/*
 Check if deployment should be created (http or worker mode)
 */}}
-{{- define "universal-app.isDeployment" -}}
+{{- define "isDeployment" -}}
 {{- or (eq .Values.mode "http") (eq .Values.mode "worker") -}}
 {{- end }}
 
 {{/*
 Check if service should be created (http mode only)
 */}}
-{{- define "universal-app.isServiceEnabled" -}}
+{{- define "isServiceEnabled" -}}
 {{- and (eq .Values.mode "http") .Values.service.enabled -}}
 {{- end }}
 
 {{/*
 Check if cronjob should be created
 */}}
-{{- define "universal-app.isCronJob" -}}
+{{- define "isCronJob" -}}
 {{- eq .Values.mode "cron" -}}
 {{- end }}
 
 {{/*
 Check if job should be created
 */}}
-{{- define "universal-app.isJob" -}}
+{{- define "isJob" -}}
 {{- eq .Values.mode "job" -}}
 {{- end }}
 
 {{/*
 Common pod template spec
 */}}
-{{- define "universal-app.podTemplate" -}}
+{{- define "podTemplate" -}}
 metadata:
   {{- with .Values.podAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "universal-app.selectorLabels" . | nindent 4 }}
+    {{- include "selectorLabels" . | nindent 4 }}
 spec:
-  {{- with .Values.imagePullSecrets }}
+  {{- if .Values.imagePullSecrets }}
   imagePullSecrets:
-    {{- toYaml . | nindent 4 }}
+  {{- if kindIs "string" .Values.imagePullSecrets }}
+  - name: {{ .Values.imagePullSecrets | quote }}
+  {{- else if kindIs "slice" .Values.imagePullSecrets }}
+  {{- range .Values.imagePullSecrets }}
+  {{- if kindIs "string" . }}
+  - name: {{ . | quote }}
+  {{- else }}
+  {{ toYaml . | indent 2 }}
   {{- end }}
-  serviceAccountName: {{ include "universal-app.serviceAccountName" . }}
+  {{- end }}
+  {{- else }}
+  {{ toYaml .Values.imagePullSecrets | indent 2 }}
+  {{- end }}
+  {{- end }}
+  serviceAccountName: {{ include "serviceAccountName" . }}
   securityContext:
     {{- toYaml .Values.podSecurityContext | nindent 4 }}
   {{- with .Values.initContainers }}
@@ -158,7 +164,7 @@ spec:
     - name: {{ .Chart.Name }}
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}
-      image: {{ include "universal-app.image" . }}
+      image: {{ include "image" . }}
       imagePullPolicy: {{ .Values.image.pullPolicy }}
       {{- with .Values.command }}
       command:
@@ -171,7 +177,7 @@ spec:
       {{- if eq .Values.mode "http" }}
       ports:
         - name: http
-          containerPort: {{ include "universal-app.containerPort" . }}
+          containerPort: {{ include "containerPort" . }}
           protocol: TCP
       {{- end }}
       {{- if and (eq .Values.mode "http") .Values.livenessProbe.enabled }}

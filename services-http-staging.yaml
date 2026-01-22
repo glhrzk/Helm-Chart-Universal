@@ -1,6 +1,3 @@
-# Default values for app.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
 
 # Deployment mode: http, worker, cron, job
 mode: http
@@ -10,12 +7,13 @@ replicaCount: 1
 
 # Image configuration
 image:
-  repository: nginx
+  repository: registry.gitlab.com/dompay/dompetx-api
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: 90933fb9-development
 
-imagePullSecrets: []
+imagePullSecrets:
+  - registry-credentials
 nameOverride: ""
 fullnameOverride: ""
 
@@ -30,7 +28,7 @@ args: []
 # ServiceAccount configuration
 serviceAccount:
   # Specifies whether a service account should be created
-  create: true
+  create: false
   # Annotations to add to the service account
   annotations: {}
   # The name of the service account to use.
@@ -74,13 +72,13 @@ service:
 
 # Ingress configuration
 ingress:
-  enabled: false
-  className: ""
+  enabled: true
+  className: "traefik"
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # cert-manager.io/cluster-issuer: letsencrypt-prod
   hosts:
-    - host: chart-example.local
+    - host: staging-api.dompetx.com
       paths:
         - path: /
           pathType: Prefix
@@ -90,19 +88,19 @@ ingress:
   #      - chart-example.local
 
 # Resource limits and requests
-resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
 
 # Liveness probe configuration
 livenessProbe:
   enabled: false
   httpGet:
-    path: /health
+    path: /healthz
     port: http
   initialDelaySeconds: 30
   periodSeconds: 10
@@ -114,7 +112,7 @@ livenessProbe:
 readinessProbe:
   enabled: false
   httpGet:
-    path: /ready
+    path: /healthz
     port: http
   initialDelaySeconds: 5
   periodSeconds: 5
@@ -126,7 +124,7 @@ readinessProbe:
 startupProbe:
   enabled: false
   httpGet:
-    path: /startup
+    path: /healthz
     port: http
   initialDelaySeconds: 0
   periodSeconds: 10
@@ -162,11 +160,11 @@ env: []
   #       key: password
 
 # Environment variables from ConfigMap or Secret
-envFrom: []
+envFrom:
   # - configMapRef:
   #     name: my-configmap
-  # - secretRef:
-  #     name: my-secret
+  - secretRef:
+      name: backend-env
 
 # ConfigMap configuration
 configMap:

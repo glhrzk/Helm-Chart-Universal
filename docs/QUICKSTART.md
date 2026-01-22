@@ -1,6 +1,6 @@
-# Universal App Helm Chart - Quick Start Guide
+# App Helm Chart - Quick Start Guide
 
-Get started with the universal-app Helm chart in minutes!
+Get started with the app Helm chart in minutes!
 
 ## Quick Installation Examples
 
@@ -271,7 +271,7 @@ secret:
 
 envFrom:
   - secretRef:
-      name: RELEASE-NAME-universal-app
+      name: RELEASE-NAME-app
 ```
 
 Install:

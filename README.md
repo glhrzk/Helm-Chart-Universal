@@ -18,21 +18,30 @@ A flexible and reusable Helm chart for deploying applications in various modes: 
 - Kubernetes 1.19+
 - Helm 3.0+
 
-### Basic Installation
+### Add Repository
+
+```bash
+helm repo add app https://glhrzk.github.io/Helm-Chart-Universal
+helm repo update
+```
+
+### Install from Repository
 
 ```bash
 # Install with default values (HTTP mode)
-helm install my-app ./helm-chart
+helm install my-app app/app
 
 # Install with custom values
-helm install my-app ./helm-chart -f values-prod.yaml
+helm install my-app app/app -f values-prod.yaml
 
 # Install with inline overrides
-helm install my-app ./helm-chart \
+helm install my-app app/app \
   --set mode=worker \
   --set image.repository=myapp \
   --set image.tag=v1.0.0
 ```
+
+### Basic Installation (Local)
 
 ## Deployment Modes
 

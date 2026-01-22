@@ -269,7 +269,7 @@ helm install migration ./helm-chart -f examples/values-migration-job.yaml
 
 ```bash
 # 1. Navigate to chart directory
-cd /Users/galih.rizkiansyah/Developments/dompay/helm-chart
+cd /Users/galih.rizkiansyah/Developments/app/helm-chart
 
 # 2. Validate chart
 helm lint .

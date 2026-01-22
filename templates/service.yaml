@@ -1,10 +1,10 @@
-{{- if eq (include "universal-app.isServiceEnabled" .) "true" }}
+{{- if eq (include "isServiceEnabled" .) "true" }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "universal-app.fullname" . }}
+  name: {{ include "fullname" . }}
   labels:
-    {{- include "universal-app.labels" . | nindent 4 }}
+    {{- include "labels" . | nindent 4 }}
   {{- with .Values.service.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -20,5 +20,5 @@ spec:
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
   selector:
-    {{- include "universal-app.selectorLabels" . | nindent 4 }}
+    {{- include "selectorLabels" . | nindent 4 }}
 {{- end }}
