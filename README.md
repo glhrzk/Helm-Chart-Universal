@@ -549,7 +549,3 @@ Feel free to submit issues and enhancement requests!
 ## License
 
 MIT License
-
-## Support
-
-For questions and support, please contact the DevOps team at devops@example.com
