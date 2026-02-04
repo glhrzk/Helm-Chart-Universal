@@ -5,6 +5,9 @@
 # Deployment mode: http, worker, cron, job
 mode: http
 
+# Override this namespace
+namespace: ""
+
 # Number of replicas (only for http and worker modes)
 replicaCount: 1
 

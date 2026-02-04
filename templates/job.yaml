@@ -3,6 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "universal-app.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "universal-app.labels" . | nindent 4 }}
 spec:
