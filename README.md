@@ -1,6 +1,39 @@
 # Universal App Helm Chart
 
-A flexible and reusable Helm chart for deploying applications in various modes: HTTP services, background workers, cron jobs, and one-off jobs. This chart supports multiple programming languages including Node.js, Python, Go, and more.
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Deployment Modes](#deployment-modes)
+  - [HTTP Mode (Default)](#1-http-mode-default)
+  - [Worker Mode](#2-worker-mode)
+  - [Cron Job Mode](#3-cron-job-mode)
+  - [Job Mode](#4-job-mode)
+- [Configuration](#configuration)
+  - [Key Configuration Options](#key-configuration-options)
+  - [Service Configuration (HTTP Mode)](#service-configuration-http-mode)
+  - [Resources](#resources)
+  - [Environment Variables](#environment-variables)
+  - [ConfigMap](#configmap)
+  - [Secrets](#secrets)
+  - [Volumes and Volume Mounts](#volumes-and-volume-mounts)
+  - [Probes (HTTP Mode)](#probes-http-mode)
+  - [Autoscaling](#autoscaling)
+  - [Init Containers and Sidecars](#init-containers-and-sidecars)
+  - [RBAC](#rbac)
+- [Examples](#examples)
+  - [Node.js HTTP Application](#nodejs-http-application)
+  - [Python Worker](#python-worker)
+  - [Go Cron Job](#go-cron-job)
+  - [Database Migration Job](#database-migration-job)
+- [Upgrading](#upgrading)
+- [Uninstalling](#uninstalling)
+- [Testing](#testing)
+- [Directory Structure](#directory-structure)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
