@@ -13,7 +13,7 @@ tests:
           of: ServiceAccount
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
 
   - it: should not create service account when disabled
     template: serviceaccount.yaml
@@ -57,7 +57,7 @@ tests:
           of: Role
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
       - contains:
           path: rules
           content:
@@ -82,13 +82,13 @@ tests:
           of: RoleBinding
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
       - equal:
           path: roleRef.kind
           value: Role
       - equal:
           path: roleRef.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
 
   - it: should not create role binding when rbac disabled
     template: rolebinding.yaml
@@ -108,7 +108,7 @@ tests:
           path: subjects
           content:
             kind: ServiceAccount
-            name: RELEASE-NAME-universal-app
+            name: RELEASE-NAME-app
             namespace: NAMESPACE
 
   - it: should use custom service account name in role binding

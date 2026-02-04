@@ -18,7 +18,7 @@ tests:
           of: Ingress
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app
 
   - it: should not create ingress when disabled
     template: ingress.yaml
@@ -158,4 +158,4 @@ tests:
           value: Deployment
       - equal:
           path: spec.scaleTargetRef.name
-          value: RELEASE-NAME-universal-app
+          value: RELEASE-NAME-app

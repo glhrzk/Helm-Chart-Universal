@@ -1,9 +1,8 @@
 apiVersion: v2
-name: universal-app
+name: app
 description: A universal Helm chart for deploying applications in various modes (HTTP, worker, cron, job)
 type: application
 version: 1.0.0
-appVersion: "1.0.0"
 keywords:
   - universal
   - multi-language
@@ -16,5 +15,5 @@ keywords:
   - cronjob
   - job
 maintainers:
-  - name: DevOps Team
+  - name: Galih Rizki
     email: galihrizki23@gmail.com
