@@ -1,0 +1,28 @@
+apiVersion: v1
+entries:
+  app:
+  - apiVersion: v2
+    created: "2026-02-04T11:37:08.704299+07:00"
+    description: A universal Helm chart for deploying applications in various modes
+      (HTTP, worker, cron, job)
+    digest: 87a31a2886ffe82ba3eb6dccecd80193ae415d9d8afa3ab87cef92fd2ec7877d
+    keywords:
+    - universal
+    - multi-language
+    - nodejs
+    - python
+    - java
+    - go
+    - http
+    - worker
+    - cronjob
+    - job
+    maintainers:
+    - email: galihrizki23@gmail.com
+      name: Galih Rizki
+    name: app
+    type: application
+    urls:
+    - https://glhrzk.github.io/Helm-Chart-Universal/app-1.0.0.tgz
+    version: 1.0.0
+generated: "2026-02-04T11:37:08.702957+07:00"
