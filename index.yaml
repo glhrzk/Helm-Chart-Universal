@@ -20,7 +20,7 @@ entries:
     maintainers:
     - email: galihrizki23@gmail.com
       name: Galih Rizki
-    name: app
+    name: universal-app
     type: application
     urls:
     - https://glhrzk.github.io/Helm-Chart-Universal/app-1.0.0.tgz

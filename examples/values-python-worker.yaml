@@ -48,7 +48,7 @@ configMap:
 
 envFrom:
   - configMapRef:
-      name: '{{ include "configMapName" . }}'
+      name: '{{ include "app.configMapName" . }}'
 
 # Autoscaling for worker
 autoscaling:

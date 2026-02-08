@@ -9,34 +9,34 @@
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "fullname" . }})
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "app.fullname" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.service.type }}
   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
   You can watch the status by running:
-  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "fullname" . }}
+  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "app.fullname" . }}
   
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "app.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo http://$SERVICE_IP:{{ .Values.service.port }}
 {{- else if contains "ClusterIP" .Values.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "app.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
 {{- end }}
 
 2. Check the deployment status:
-  kubectl get deployment --namespace {{ .Release.Namespace }} {{ include "fullname" . }}
+  kubectl get deployment --namespace {{ .Release.Namespace }} {{ include "app.fullname" . }}
 
 {{- else if eq .Values.mode "worker" }}
 🎉 Your worker application has been deployed!
 
 1. Check the deployment status:
-  kubectl get deployment --namespace {{ .Release.Namespace }} {{ include "fullname" . }}
+  kubectl get deployment --namespace {{ .Release.Namespace }} {{ include "app.fullname" . }}
 
 2. View worker logs:
-  kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -f
+  kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "app.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -f
 
 {{- else if eq .Values.mode "cron" }}
 🎉 Your CronJob has been deployed!
@@ -44,25 +44,25 @@
 Schedule: {{ .Values.cronjob.schedule }}
 
 1. Check the CronJob status:
-  kubectl get cronjob --namespace {{ .Release.Namespace }} {{ include "fullname" . }}
+  kubectl get cronjob --namespace {{ .Release.Namespace }} {{ include "app.fullname" . }}
 
 2. Manually trigger a job:
-  kubectl create job --namespace {{ .Release.Namespace }} --from=cronjob/{{ include "fullname" . }} manual-run-$(date +%s)
+  kubectl create job --namespace {{ .Release.Namespace }} --from=cronjob/{{ include "app.fullname" . }} manual-run-$(date +%s)
 
 3. View job history:
-  kubectl get jobs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "name" . }},app.kubernetes.io/instance={{ .Release.Name }}"
+  kubectl get jobs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "app.name" . }},app.kubernetes.io/instance={{ .Release.Name }}"
 
 {{- else if eq .Values.mode "job" }}
 🎉 Your Job has been deployed!
 
 1. Check the job status:
-  kubectl get job --namespace {{ .Release.Namespace }} {{ include "fullname" . }}
+  kubectl get job --namespace {{ .Release.Namespace }} {{ include "app.fullname" . }}
 
 2. View job logs:
-  kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -f
+  kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "app.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -f
 
 3. Check job completion:
-  kubectl wait --namespace {{ .Release.Namespace }} --for=condition=complete --timeout=600s job/{{ include "fullname" . }}
+  kubectl wait --namespace {{ .Release.Namespace }} --for=condition=complete --timeout=600s job/{{ include "app.fullname" . }}
 {{- end }}
 
 ---
@@ -70,7 +70,7 @@ Schedule: {{ .Values.cronjob.schedule }}
 - Release: {{ .Release.Name }}
 - Namespace: {{ .Release.Namespace }}
 - Mode: {{ .Values.mode }}
-- Image: {{ include "image" . }}
+- Image: {{ include "app.image" . }}
 
 {{- if .Values.autoscaling.enabled }}
 - Autoscaling: Enabled (min: {{ .Values.autoscaling.minReplicas }}, max: {{ .Values.autoscaling.maxReplicas }})

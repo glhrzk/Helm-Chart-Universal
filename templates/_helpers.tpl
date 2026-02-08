@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "name" -}}
+{{- define "app.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -9,27 +9,32 @@ Expand the name of the chart.
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
-{{- define "fullname" -}}
+{{- define "app.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
 {{- end }}
 {{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "chart" -}}
+{{- define "app.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "labels" -}}
-helm.sh/chart: {{ include "chart" . }}
-{{ include "selectorLabels" . }}
+{{- define "app.labels" -}}
+helm.sh/chart: {{ include "app.chart" . }}
+{{ include "app.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -40,17 +45,17 @@ app.kubernetes.io/mode: {{ .Values.mode }}
 {{/*
 Selector labels
 */}}
-{{- define "selectorLabels" -}}
-app.kubernetes.io/name: {{ include "name" . }}
+{{- define "app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "app.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "serviceAccountName" -}}
+{{- define "app.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "fullname" .) .Values.serviceAccount.name }}
+{{- default (include "app.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -59,37 +64,41 @@ Create the name of the service account to use
 {{/*
 Create the name of the ConfigMap to use
 */}}
-{{- define "configMapName" -}}
+{{- define "app.configMapName" -}}
 {{- if .Values.configMap.name }}
 {{- .Values.configMap.name }}
 {{- else }}
-{{- include "fullname" . }}
+{{- include "app.fullname" . }}
 {{- end }}
 {{- end }}
 
 {{/*
 Create the name of the Secret to use
 */}}
-{{- define "secretName" -}}
+{{- define "app.secretName" -}}
 {{- if .Values.secret.name }}
 {{- .Values.secret.name }}
 {{- else }}
-{{- include "fullname" . }}
+{{- include "app.fullname" . }}
 {{- end }}
 {{- end }}
 
 {{/*
 Return the proper image name
 */}}
-{{- define "image" -}}
+{{- define "app.image" -}}
 {{- $tag := .Values.image.tag | default .Chart.AppVersion -}}
+{{- if $tag -}}
 {{- printf "%s:%s" .Values.image.repository $tag -}}
+{{- else -}}
+{{- .Values.image.repository -}}
+{{- end -}}
 {{- end }}
 
 {{/*
 Return the proper container ports
 */}}
-{{- define "containerPort" -}}
+{{- define "app.containerPort" -}}
 {{- if .Values.service.targetPort }}
 {{- .Values.service.targetPort }}
 {{- else }}
@@ -100,42 +109,42 @@ Return the proper container ports
 {{/*
 Check if deployment should be created (http or worker mode)
 */}}
-{{- define "isDeployment" -}}
+{{- define "app.isDeployment" -}}
 {{- or (eq .Values.mode "http") (eq .Values.mode "worker") -}}
 {{- end }}
 
 {{/*
 Check if service should be created (http mode only)
 */}}
-{{- define "isServiceEnabled" -}}
+{{- define "app.isServiceEnabled" -}}
 {{- and (eq .Values.mode "http") .Values.service.enabled -}}
 {{- end }}
 
 {{/*
 Check if cronjob should be created
 */}}
-{{- define "isCronJob" -}}
+{{- define "app.isCronJob" -}}
 {{- eq .Values.mode "cron" -}}
 {{- end }}
 
 {{/*
 Check if job should be created
 */}}
-{{- define "isJob" -}}
+{{- define "app.isJob" -}}
 {{- eq .Values.mode "job" -}}
 {{- end }}
 
 {{/*
 Common pod template spec
 */}}
-{{- define "podTemplate" -}}
+{{- define "app.podTemplate" -}}
 metadata:
   {{- with .Values.podAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "selectorLabels" . | nindent 4 }}
+    {{- include "app.selectorLabels" . | nindent 4 }}
 spec:
   {{- if .Values.imagePullSecrets }}
   imagePullSecrets:
@@ -153,7 +162,7 @@ spec:
   {{ toYaml .Values.imagePullSecrets | indent 2 }}
   {{- end }}
   {{- end }}
-  serviceAccountName: {{ include "serviceAccountName" . }}
+  serviceAccountName: {{ include "app.serviceAccountName" . }}
   securityContext:
     {{- toYaml .Values.podSecurityContext | nindent 4 }}
   {{- with .Values.initContainers }}
@@ -164,7 +173,7 @@ spec:
     - name: {{ .Chart.Name }}
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}
-      image: {{ include "image" . }}
+      image: {{ include "app.image" . }}
       imagePullPolicy: {{ .Values.image.pullPolicy }}
       {{- with .Values.command }}
       command:
@@ -177,7 +186,7 @@ spec:
       {{- if eq .Values.mode "http" }}
       ports:
         - name: http
-          containerPort: {{ include "containerPort" . }}
+          containerPort: {{ include "app.containerPort" . }}
           protocol: TCP
       {{- end }}
       {{- if and (eq .Values.mode "http") .Values.livenessProbe.enabled }}

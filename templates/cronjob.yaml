@@ -1,11 +1,11 @@
-{{- if eq (include "universal-app.isCronJob" .) "true" }}
+{{- if eq (include "app.isCronJob" .) "true" }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "universal-app.fullname" . }}
+  name: {{ include "app.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "universal-app.labels" . | nindent 4 }}
+    {{- include "app.labels" . | nindent 4 }}
 spec:
   schedule: {{ .Values.cronjob.schedule | quote }}
   concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
@@ -14,7 +14,7 @@ spec:
   jobTemplate:
     metadata:
       labels:
-        {{- include "universal-app.selectorLabels" . | nindent 8 }}
+        {{- include "app.selectorLabels" . | nindent 8 }}
     spec:
       backoffLimit: {{ .Values.cronjob.backoffLimit }}
       {{- if .Values.cronjob.activeDeadlineSeconds }}
@@ -24,6 +24,6 @@ spec:
       ttlSecondsAfterFinished: {{ .Values.cronjob.ttlSecondsAfterFinished }}
       {{- end }}
       template:
-        {{- include "universal-app.podTemplate" . | nindent 8 }}
+        {{- include "app.podTemplate" . | nindent 8 }}
           restartPolicy: {{ .Values.cronjob.restartPolicy }}
 {{- end }}

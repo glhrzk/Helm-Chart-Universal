@@ -1,11 +1,11 @@
-{{- if and .Values.podDisruptionBudget.enabled (eq (include "universal-app.isDeployment" .) "true") }}
+{{- if and .Values.podDisruptionBudget.enabled (eq (include "app.isDeployment" .) "true") }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "universal-app.fullname" . }}
+  name: {{ include "app.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "universal-app.labels" . | nindent 4 }}
+    {{- include "app.labels" . | nindent 4 }}
 spec:
   {{- if .Values.podDisruptionBudget.minAvailable }}
   minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
@@ -15,5 +15,5 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "universal-app.selectorLabels" . | nindent 6 }}
+      {{- include "app.selectorLabels" . | nindent 6 }}
 {{- end }}

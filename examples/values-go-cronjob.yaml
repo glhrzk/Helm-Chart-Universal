@@ -59,7 +59,7 @@ configMap:
 volumes:
   - name: config
     configMap:
-      name: '{{ include "configMapName" . }}'
+      name: '{{ include "app.configMapName" . }}'
   - name: data
     emptyDir: {}
 
